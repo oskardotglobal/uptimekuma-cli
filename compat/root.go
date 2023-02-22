@@ -5,13 +5,33 @@ import (
 	"github.com/oskardotglobal/uptimekuma-cli/util"
 )
 
+var (
+	nodes []Node
+)
+
 type Node interface {
 	GetName() string
 	ShouldReportStatus() bool
 }
 
+func init() {
+	dockerContainers := util.ArrayMap(GetDockerContainers(), func(x DockerNode) Node {
+		return Node(x)
+	})
+
+	nodes = append(nodes, dockerContainers...)
+
+	util.ArrayMap(nodes, func(x Node) string {
+		util.SetNodeUrlIfEmpty(x.GetName())
+		return ""
+	})
+}
+
 func ReportNodes(scheduler *gocron.Scheduler) {
-	ReportDocker(scheduler)
+	for _, node := range nodes {
+		_, err := scheduler.Every(1).Minute().Do(ReportStatusForNode, node)
+		util.CheckErrorWithMsg(err, "Couldn't schedule task for container "+node.GetName())
+	}
 }
 
 func ReportStatusForNode(node Node) {

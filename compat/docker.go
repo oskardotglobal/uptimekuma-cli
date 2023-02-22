@@ -4,19 +4,30 @@ import (
 	"context"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"github.com/go-co-op/gocron"
 	"github.com/oskardotglobal/uptimekuma-cli/util"
 	"github.com/spf13/cobra"
 )
 
 type DockerNode struct {
+	Node
 	Name    string
 	ID      string
 	Client  client.APIClient
 	Context context.Context
 }
 
-// GetName this implicitly implements the Node inteface for DockerNode
+var (
+	cli, cliErr = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+)
+
+func init() {
+	if cliErr != nil {
+		util.Warn(cliErr, "Couldn't connect to docker, skipping... - "+cliErr.Error())
+		return
+	}
+}
+
+// GetName this implicitly implements the Node interface for DockerNode
 // no need for an "implements" keyword
 func (node DockerNode) GetName() string {
 	if node.Name != "" {
@@ -26,6 +37,7 @@ func (node DockerNode) GetName() string {
 	return node.ID
 }
 
+// ShouldReportStatus this implicitly implements the Node interface for DockerNode
 func (node DockerNode) ShouldReportStatus() bool {
 	status, err := node.Client.ContainerInspect(node.Context, node.ID)
 	cobra.CheckErr(err)
@@ -33,7 +45,7 @@ func (node DockerNode) ShouldReportStatus() bool {
 	return status.State.Running
 }
 
-func GetDockerContainers(cli client.APIClient) []DockerNode {
+func GetDockerContainers() []DockerNode {
 	ctx := context.Background()
 
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
@@ -46,7 +58,6 @@ func GetDockerContainers(cli client.APIClient) []DockerNode {
 		inspect, err := cli.ContainerInspect(ctx, id)
 
 		cobra.CheckErr(err)
-
 		ret = append(ret, DockerNode{
 			Name:    inspect.Name,
 			ID:      id,
@@ -56,19 +67,4 @@ func GetDockerContainers(cli client.APIClient) []DockerNode {
 	}
 
 	return ret
-}
-
-func ReportDocker(scheduler *gocron.Scheduler) {
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		util.Warn(err, "Couldn't connect to docker, skipping... - "+err.Error())
-		return
-	}
-
-	for _, container := range GetDockerContainers(cli) {
-		_, err := scheduler.Every(1).Minute().Do(ReportStatusForNode, container)
-		util.CheckErrorWithMsg(err, "Couldn't schedule task for container "+container.GetName())
-	}
-
-	defer cli.Close()
 }

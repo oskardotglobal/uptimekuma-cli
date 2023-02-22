@@ -29,3 +29,20 @@ func ReportStatus(configPath string) {
 	_, err := http.Get(url)
 	CheckErrorWithMsg(err, "Error contacting remote server, is the push url valid?")
 }
+
+func ArrayMap[T, U any](data []T, f func(T) U) []U {
+
+	res := make([]U, 0, len(data))
+
+	for _, e := range data {
+		res = append(res, f(e))
+	}
+
+	return res
+}
+
+func SetNodeUrlIfEmpty(configItem string) {
+	if viper.GetString(configItem) == "" {
+		viper.Set(configItem, "your_url_here")
+	}
+}
