@@ -27,7 +27,8 @@ func init() {
 	})
 }
 
-func ReportNodes(scheduler *gocron.Scheduler) {
+func ReportNodes(pScheduler *gocron.Scheduler) {
+	scheduler := *pScheduler
 	for _, node := range nodes {
 		_, err := scheduler.Every(1).Minute().Do(ReportStatusForNode, node)
 		util.CheckErrorWithMsg(err, "Couldn't schedule task for container "+node.GetName())
