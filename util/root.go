@@ -18,11 +18,11 @@ func CheckErrorWithMsg(err error, msg string) {
 	}
 }
 
-func ReportStatus(configPath string) {
-	url := viper.GetString(configPath)
+func ReportStatus(viperInstance *viper.Viper, configPath string) {
+	url := viperInstance.GetString(configPath)
 
 	if url == "" || !strings.HasPrefix(url, "http") {
-		viper.Set(configPath, "your_url_here")
+		viperInstance.Set(configPath, "your_url_here")
 		Fatal("Invalid url! Please manually set the push url in the config first!")
 	}
 

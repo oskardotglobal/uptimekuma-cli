@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/oskardotglobal/uptimekuma-cli/compat"
 	"os"
 	"time"
 
@@ -18,14 +17,14 @@ var rootCmd = &cobra.Command{
 	Short: "Ping uptime kuma server every minute",
 	Long:  `Cli tool to report uptime to uptime kuma using push method`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var scheduler = *gocron.NewScheduler(time.FixedZone("Europe/Berlin", 1*60*60))
+		scheduler := gocron.NewScheduler(time.FixedZone("Europe/Berlin", 1*60*60))
 
 		// Schedule task for root node
-		_, err := scheduler.Every(1).Minute().Do(util.ReportStatus, "nodes.root")
+		_, err := scheduler.Every(1).Minute().Do(util.ReportStatus, viper.GetViper(), "nodes.root")
 		util.CheckErrorWithMsg(err, "Error whilst scheduling task")
 
 		// Schedule tasks for nodes running on root node
-		compat.ReportNodes(&scheduler)
+		//compat.ReportNodes(scheduler)
 
 		scheduler.StartBlocking()
 	},
