@@ -1,32 +1,34 @@
 package cmd
 
 import (
-	"os"
-	"time"
-
 	"github.com/go-co-op/gocron"
 	"github.com/oskardotglobal/uptimekuma-cli/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
+	"time"
 )
 
-var cfgFile string
+var (
+	cfgFile   string
+	scheduler *gocron.Scheduler
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "uptimekuma-cli",
 	Short: "Ping uptime kuma server every minute",
 	Long:  `Cli tool to report uptime to uptime kuma using push method`,
 	Run: func(cmd *cobra.Command, args []string) {
-		scheduler := gocron.NewScheduler(time.FixedZone("Europe/Berlin", 1*60*60))
+		scheduler = gocron.NewScheduler(time.FixedZone("Europe/Berlin", 1*60*60))
 
 		// Schedule task for root node
 		_, err := scheduler.Every(1).Minute().Do(util.ReportStatus, viper.GetViper(), "nodes.root")
 		util.CheckErrorWithMsg(err, "Error whilst scheduling task")
 
 		// Schedule tasks for nodes running on root node
-		//compat.ReportNodes(scheduler)
+		//compat.ReportNodes(scheduler, viper.GetViper())
 
-		scheduler.StartBlocking()
+		defer scheduler.StartAsync()
 	},
 }
 
