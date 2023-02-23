@@ -28,7 +28,7 @@ var rootCmd = &cobra.Command{
 		// Schedule tasks for nodes running on root node
 		//compat.ReportNodes(scheduler, viper.GetViper())
 
-		defer scheduler.StartAsync()
+		scheduler.StartBlocking()
 	},
 }
 
