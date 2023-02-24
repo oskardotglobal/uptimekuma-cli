@@ -1,10 +1,19 @@
 package util
 
 import (
-	"github.com/spf13/viper"
 	"net/http"
 	"strings"
+
+	"github.com/spf13/viper"
 )
+
+var (
+	ViperInstance *viper.Viper
+)
+
+func InitConfig(viperInstance *viper.Viper) {
+	ViperInstance = viperInstance
+}
 
 func CheckError(err error) {
 	if err != nil {
@@ -18,12 +27,15 @@ func CheckErrorWithMsg(err error, msg string) {
 	}
 }
 
-func ReportStatus(viperInstance *viper.Viper, configPath string) {
-	url := viperInstance.GetString(configPath)
+func ReportStatus(configPath string) {
+	url := ViperInstance.GetString(configPath)
 
 	if url == "" || !strings.HasPrefix(url, "http") {
-		viperInstance.Set(configPath, "your_url_here")
-		Fatal("Invalid url! Please manually set the push url in the config first!")
+		ViperInstance.Set(configPath, "your_url_here")
+		err := ViperInstance.WriteConfig()
+		CheckErrorWithMsg(err, "Couldn't write config")
+		Fatal("Invalid url for " + configPath + "! Please manually set the push url in the config first!")
+		return
 	}
 
 	_, err := http.Get(url)
@@ -42,7 +54,9 @@ func ArrayMap[T, U any](data []T, f func(T) U) []U {
 }
 
 func SetNodeUrlIfEmpty(configItem string) {
-	if viper.GetString(configItem) == "" {
-		viper.Set(configItem, "your_url_here")
+	if ViperInstance.GetString(configItem) == "" {
+		ViperInstance.Set(configItem, "your_url_here")
+		err := ViperInstance.WriteConfig()
+		CheckErrorWithMsg(err, "Couldn't write config")
 	}
 }

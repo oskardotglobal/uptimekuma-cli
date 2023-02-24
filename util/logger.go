@@ -1,6 +1,9 @@
 package util
 
-import "log"
+import (
+	"log"
+	"os"
+)
 
 var (
 	WarningLogger *log.Logger
@@ -9,23 +12,23 @@ var (
 )
 
 func init() {
-	InfoLogger = log.New(nil, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-	WarningLogger = log.New(nil, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
-	ErrorLogger = log.New(nil, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	InfoLogger = log.New(os.Stdout, "[INFO] ", log.Ltime)
+	WarningLogger = log.New(os.Stdout, "[WARNING] ", log.Ltime)
+	ErrorLogger = log.New(os.Stdout, "[ERROR] ", log.Ltime)
 }
 
-func Info(v ...any) {
+func Info(v any) {
 	InfoLogger.Println(v)
 }
 
-func Warn(v ...any) {
+func Warn(v any) {
 	WarningLogger.Println(v)
 }
 
-func Error(v ...any) {
+func Error(v any) {
 	ErrorLogger.Println(v)
 }
 
-func Fatal(v ...any) {
+func Fatal(v any) {
 	ErrorLogger.Fatalln(v)
 }

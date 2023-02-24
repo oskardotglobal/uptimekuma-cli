@@ -22,7 +22,7 @@ var (
 
 func init() {
 	if cliErr != nil {
-		util.Warn(cliErr, "Couldn't connect to docker, skipping... - "+cliErr.Error())
+		util.Warn("Couldn't connect to docker, skipping... - "+cliErr.Error())
 		return
 	}
 }

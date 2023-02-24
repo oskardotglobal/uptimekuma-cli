@@ -3,7 +3,6 @@ package compat
 import (
 	"github.com/go-co-op/gocron"
 	"github.com/oskardotglobal/uptimekuma-cli/util"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -28,15 +27,15 @@ func init() {
 	})
 }
 
-func ReportNodes(scheduler *gocron.Scheduler, viperInstance *viper.Viper) {
+func ReportNodes(scheduler *gocron.Scheduler) {
 	for _, node := range nodes {
-		_, err := scheduler.Every(1).Minute().Do(ReportStatusForNode, node, viperInstance)
+		_, err := scheduler.Every(1).Minute().Do(ReportStatusForNode, node)
 		util.CheckErrorWithMsg(err, "Couldn't schedule task for container "+node.GetName())
 	}
 }
 
-func ReportStatusForNode(node Node, viperInstance *viper.Viper) {
+func ReportStatusForNode(node Node) {
 	if node.ShouldReportStatus() {
-		util.ReportStatus(viperInstance, "nodes."+node.GetName())
+		util.ReportStatus("nodes."+node.GetName())
 	}
 }
