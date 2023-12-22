@@ -62,10 +62,11 @@ func initConfig() {
 	}
 
 	viper.SetConfigFile(cfgFile)
-	util.SetNodeUrlIfEmpty("nodes.root")
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		util.Info("Using config file " + viper.ConfigFileUsed())
 	}
+
+    util.SetNodeUrlIfEmpty("nodes.root")
 }
